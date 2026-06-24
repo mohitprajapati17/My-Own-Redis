@@ -40,7 +40,39 @@ int main(){
     if(fd<0){
         die("socket");
     }
+
+    int val =1;
+    setsockopt(fd ,SOL_SOCKET ,SO_REUSEADDR ,&val , sizeof(val));
+
+    struct sockaddr_in addr={};
+    addr.sin_family=AF_INET;
+    addr.sin_port = ntohs(12345);
+    addr.sin_addr.s_addr=ntohl(0);
+
+    int rv=bind(fd , (struct sockaddr *)&addr , sizeof(addr));
+    if(rv<0){
+        die("bind");
+    }
+
+    rv=listen(fd,SOMAXCONN);
+    if(rv<0){
+        die("listen");
+    }
+
+    while(1){
+        struct sockaddr_in caddr={};  //address of the client
+        socklen_t caddrlen=sizeof(caddr);
+        int cfd=accept(fd , (struct sockaddr *)&caddr , &caddrlen);
+        if(cfd<0){
+            msg("accept error");
+            continue;
+        }
+
+        do_something(cfd);
+        close(cfd);
+    }
     
+
     
     return 0;
 }
